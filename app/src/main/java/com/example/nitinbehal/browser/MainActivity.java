@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView bookmark;
     private ImageView menuItem;
     private RelativeLayout bookmarkLayout;
-    private static final String googleQuery = "http://www.google.com/search?q=";
+    private static final String googleQuery = "https://www.google.com/search?q=";
     private SharedPreferences pref;
 
     private SharedPreferences.Editor editor;
@@ -61,6 +61,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         webViewInitialization();
 
+        setOnclickListener();
+
+        initializingSharedPref();
+
+        settingActionListener();
+
+    }
+
+    private void setOnclickListener() {
         goText.setOnClickListener(this);
         previous.setOnClickListener(this);
         next.setOnClickListener(this);
@@ -68,10 +77,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bookmarkLayout.setOnClickListener(this);
         menuItem.setOnClickListener(this);
 
+        editText.setOnLongClickListener(v -> {
 
-        initializingSharedPref();
-
-        settingActionListener();
+            editText.selectAll();
+            return false;
+        });
     }
 
     private void webViewInitialization() {
@@ -82,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
+                editText.setText(url);
                 super.onPageFinished(view, url);
             }
         });
@@ -121,12 +132,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.next:
 
-                webView.goForward();
+                if (webView.canGoForward())
+                    webView.goForward();
+                else
+                    Toast.makeText(this, "No forward webpage", Toast.LENGTH_SHORT).show();
                 break;
 
             case R.id.previous:
 
-                webView.goBack();
+                if (webView.canGoBack())
+                    webView.goBack();
+                else
+                    Toast.makeText(this, "No backward webpage", Toast.LENGTH_SHORT).show();
                 break;
 
             case R.id.menu_item:
@@ -139,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.go_textview:
 
+                hideKeyBoard();
                 String query = editText.getText().toString();
 
                 loadingWebview(query);
@@ -157,6 +175,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (bookmarkQuery.trim().length() == 0) {
             Toast.makeText(this, "Empty query", Toast.LENGTH_LONG).show();
             return;
+        } else if (!bookmarkQuery.contains("http://") && !bookmarkQuery.contains("https://")) {
+
+            Toast.makeText(this, "Invalid query", Toast.LENGTH_LONG).show();
+            return;
         }
 
         String previousBookmarks = pref.getString(key, null);
@@ -170,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 while (iterable.hasNext()) {
                     if (iterable.next().equals(bookmarkQuery)) {
 
+                        changingBookmarkText();
                         Toast.makeText(this, " Already Bookmarked", Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -183,8 +206,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
 
-        bookmark.setText(getString(R.string.bookmarked));
-        bookmarkLayout.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        changingBookmarkText();
         editor.putString(key, jsonObject.toString()).apply();
     }
 
@@ -203,10 +225,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         progressBar.setVisibility(View.VISIBLE);
         String result;
 
-        if (query.contains("https://"))
+        if (query.contains("https://") || query.contains("http://"))
             result = query;
         else if (query.contains("www."))
-            result = "https://" + query;
+            result = "http://" + query;
         else
             result = googleQuery + query;
 
@@ -229,8 +251,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     loadingWebview(query);
                     editText.setText(query);
 
+                    changingBookmarkText();
+
                 }
         }
+    }
+
+    private void changingBookmarkText() {
+        bookmarkLayout.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        bookmark.setText(getString(R.string.bookmarked));
     }
 
     private void hideKeyBoard() {
@@ -241,6 +270,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             assert imm != null;
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+
     }
 
     @Override
@@ -250,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (backPressCount > 1)
             super.onBackPressed();
         else
-            Toast.makeText(this, "Press back again to exit.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Press back again to exit.", Toast.LENGTH_SHORT).show();
 
     }
 
