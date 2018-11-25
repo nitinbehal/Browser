@@ -93,6 +93,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
                 editText.setText(url);
+
+                checkingBookmarks(url);
+
                 super.onPageFinished(view, url);
             }
         });
@@ -100,6 +103,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         webView.getSettings().setBuiltInZoomControls(true);
         webView.getSettings().setAppCacheEnabled(true);
         webView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+    }
+
+    private void checkingBookmarks(String url) {
+        String previousBookmarks = pref.getString(key, null);
+
+        JSONObject jsonObject = new JSONObject();
+        if (previousBookmarks != null) {
+            try {
+                jsonObject = new JSONObject(previousBookmarks);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            Iterator<String> iterable = jsonObject.keys();
+            while (iterable.hasNext()) {
+                if (iterable.next().equals(url)) {
+
+                    changingBookmarkText();
+                    return;
+                }
+            }
+
+        }
+
+        initBookMark();
     }
 
     private void initialization() {
@@ -250,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     loadingWebview(query);
                     editText.setText(query);
 
-                    changingBookmarkText();
+                    //changingBookmarkText();
 
                 }
         }
