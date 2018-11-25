@@ -123,7 +123,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.bookmark_layout:
 
-                bookmarkQuery();
+                try {
+                    bookmarkQuery();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
 
             case R.id.edit_query:
@@ -169,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void bookmarkQuery() {
+    private void bookmarkQuery() throws JSONException {
         String bookmarkQuery = editText.getText().toString();
 
         if (bookmarkQuery.trim().length() == 0) {
@@ -185,29 +189,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         JSONObject jsonObject = new JSONObject();
         if (previousBookmarks != null) {
-            try {
-                jsonObject = new JSONObject(previousBookmarks);
+            jsonObject = new JSONObject(previousBookmarks);
 
-                Iterator<String> iterable = jsonObject.keys();
-                while (iterable.hasNext()) {
-                    if (iterable.next().equals(bookmarkQuery)) {
+            Iterator<String> iterable = jsonObject.keys();
+            while (iterable.hasNext()) {
+                if (iterable.next().equals(bookmarkQuery)) {
 
-                        changingBookmarkText();
-                        Toast.makeText(this, " Already Bookmarked", Toast.LENGTH_LONG).show();
-                        return;
-                    }
+                    changingBookmarkText();
+                    Toast.makeText(this, " Already Bookmarked", Toast.LENGTH_LONG).show();
+                    return;
                 }
-
-                jsonObject.put(bookmarkQuery, "");
-
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
 
         }
 
+        jsonObject.put(bookmarkQuery, "");
+
         changingBookmarkText();
-        editor.putString(key, jsonObject.toString()).apply();
+        editor.putString(key, jsonObject.toString()).commit();
     }
 
     private void initBookMark() {

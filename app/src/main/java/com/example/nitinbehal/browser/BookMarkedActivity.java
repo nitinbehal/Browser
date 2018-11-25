@@ -84,6 +84,9 @@ public class BookMarkedActivity extends AppCompatActivity implements BookMarkInt
                 holder.setVisibility(View.VISIBLE);
             }
 
+        }else{
+            recyclerView.setVisibility(View.GONE);
+            holder.setVisibility(View.VISIBLE);
         }
 
     }
@@ -116,7 +119,7 @@ public class BookMarkedActivity extends AppCompatActivity implements BookMarkInt
             JSONObject jsonObject = new JSONObject(previousBookmarks);
             jsonObject.remove(query);
 
-            editor.putString(MainActivity.key, jsonObject.toString()).apply();
+            editor.putString(MainActivity.key, jsonObject.toString()).commit();
 
             if (bookMarksList.size() == 0) {
                 recyclerView.setVisibility(View.VISIBLE);
